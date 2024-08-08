@@ -6,7 +6,7 @@ def get_last_receipt_date(inventory_df, receipts_df):
     results = {}
     for part in inventory_df['Item number'].unique():
         inventory_qty = inventory_df[inventory_df['Item number'] == part]['Physical inventory'].values[0]
-        part_receipts = receipts_df[receipts_df['ItemID'] == part].sort_values(by='DateFinancial', ascending=False)
+        part_receipts = receipts_df[receipts_df['ItemId'] == part].sort_values(by='DateFinancial', ascending=False)
         
         remaining_qty = inventory_qty
         for idx, row in part_receipts.iterrows():
@@ -34,10 +34,6 @@ if inventory_file and transactions_file:
         transactions_df = pd.read_csv(transactions_file)
     else:
         transactions_df = pd.read_excel(transactions_file)
-    
-    # Debugging: print the columns to verify the correct names
-    st.write("### Transactions DataFrame Columns")
-    st.write(transactions_df.columns)
     
     # Filter transactions by "Purchase order" in column "TransType1"
     transactions_df = transactions_df[transactions_df['TransType1'] == 'Purchase order']
