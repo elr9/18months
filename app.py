@@ -50,4 +50,23 @@ if inventory_file and transactions_file:
         inventory_df = pd.read_excel(inventory_file)
     
     if transactions_file.name.endswith('csv'):
-        transactions_df = p
+        transactions_df = pd.read_csv(transactions_file)
+    else:
+        transactions_df = pd.read_excel(transactions_file)
+    
+    # Filter transactions by "Purchase order" in column "TransType1"
+    transactions_df = transactions_df[transactions_df['TransType1'] == 'Purchase order']
+    
+    # Ensure the relevant columns are in the correct data types
+    transactions_df['DateFinancial'] = pd.to_datetime(transactions_df['DateFinancial'])
+    transactions_df['Qty'] = transactions_df['Qty'].str.replace(',', '').astype(float)
+    
+    # Calculate the last receipt date
+    last_receipt_dates = get_last_receipt_date(inventory_df, transactions_df)
+    
+    # Display results
+    st.write('## Last Receipt Dates Based on Inventory')
+    result_df = pd.DataFrame(last_receipt_dates)
+    st.write(result_df)
+else:
+    st.write('Please upload both the inventory and transactions files.')
