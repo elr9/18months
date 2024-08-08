@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from datetime import datetime, timedelta
 
 # Function to determine the last receipt date based on the remaining inventory
 def get_last_receipt_date(inventory_df, receipts_df):
@@ -10,7 +11,7 @@ def get_last_receipt_date(inventory_df, receipts_df):
         
         if part_receipts.empty:
             results.append({'Part Number': part, 'Inventory Quantity': inventory_qty, 
-                            'Last Receipt Date': 'No receipts found'})
+                            'Last Receipt Date': 'No receipts found', 'Exceeds 18 Months': 'N/A'})
             continue
         
         remaining_qty = inventory_qty
@@ -19,15 +20,18 @@ def get_last_receipt_date(inventory_df, receipts_df):
             if remaining_qty > row['Qty']:
                 remaining_qty -= row['Qty']
             else:
-                last_receipt_date = row['DateFinancial'].strftime('%m/%d/%Y')
+                last_receipt_date = row['DateFinancial']
                 break
         
         if remaining_qty > 0 and not last_receipt_date:
-            last_receipt_date = part_receipts.iloc[-1]['DateFinancial'].strftime('%m/%d/%Y')
+            last_receipt_date = part_receipts.iloc[-1]['DateFinancial']
             results.append({'Part Number': part, 'Inventory Quantity': inventory_qty, 
-                            'Last Receipt Date': f'incomplete records, last receipt previous to {last_receipt_date}'})
+                            'Last Receipt Date': f'incomplete records, last receipt previous to {last_receipt_date.strftime("%m/%d/%Y")}', 'Exceeds 18 Months': 'N/A'})
         else:
-            results.append({'Part Number': part, 'Inventory Quantity': inventory_qty, 'Last Receipt Date': last_receipt_date})
+            last_receipt_date_str = last_receipt_date.strftime('%m/%d/%Y')
+            exceeds_18_months = 'Yes' if last_receipt_date < datetime.now() - timedelta(days=18*30) else 'No'
+            results.append({'Part Number': part, 'Inventory Quantity': inventory_qty, 
+                            'Last Receipt Date': last_receipt_date_str, 'Exceeds 18 Months': exceeds_18_months})
     return results
 
 # Streamlit app
