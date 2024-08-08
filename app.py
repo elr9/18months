@@ -3,18 +3,20 @@ import pandas as pd
 
 # Function to determine the last receipt date based on the remaining inventory
 def get_last_receipt_date(inventory_df, receipts_df):
-    results = {}
+    results = []
     for part in inventory_df['Item number'].unique():
         inventory_qty = inventory_df[inventory_df['Item number'] == part]['Physical inventory'].values[0]
         part_receipts = receipts_df[receipts_df['ItemId'] == part].sort_values(by='DateFinancial', ascending=False)
         
         remaining_qty = inventory_qty
+        last_receipt_date = None
         for idx, row in part_receipts.iterrows():
             if remaining_qty > row['Qty']:
                 remaining_qty -= row['Qty']
             else:
-                results[part] = row['DateFinancial']
+                last_receipt_date = row['DateFinancial'].strftime('%m/%d/%Y')
                 break
+        results.append({'Part Number': part, 'Inventory Quantity': inventory_qty, 'Last Receipt Date': last_receipt_date})
     return results
 
 # Streamlit app
@@ -47,7 +49,7 @@ if inventory_file and transactions_file:
     
     # Display results
     st.write('## Last Receipt Dates Based on Inventory')
-    result_df = pd.DataFrame(list(last_receipt_dates.items()), columns=['Part Number', 'Last Receipt Date'])
+    result_df = pd.DataFrame(last_receipt_dates)
     st.write(result_df)
 else:
     st.write('Please upload both the inventory and transactions files.')
