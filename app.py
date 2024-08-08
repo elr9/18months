@@ -10,13 +10,20 @@ def get_last_receipt_date(inventory_df, receipts_df):
         
         remaining_qty = inventory_qty
         last_receipt_date = None
+        incomplete_record = False
         for idx, row in part_receipts.iterrows():
             if remaining_qty > row['Qty']:
                 remaining_qty -= row['Qty']
             else:
                 last_receipt_date = row['DateFinancial'].strftime('%m/%d/%Y')
                 break
-        results.append({'Part Number': part, 'Inventory Quantity': inventory_qty, 'Last Receipt Date': last_receipt_date})
+        
+        if remaining_qty > 0 and not last_receipt_date:
+            last_receipt_date = part_receipts.iloc[-1]['DateFinancial'].strftime('%m/%d/%Y')
+            results.append({'Part Number': part, 'Inventory Quantity': inventory_qty, 
+                            'Last Receipt Date': f'incomplete records, last receipt previous to {last_receipt_date}'})
+        else:
+            results.append({'Part Number': part, 'Inventory Quantity': inventory_qty, 'Last Receipt Date': last_receipt_date})
     return results
 
 # Streamlit app
