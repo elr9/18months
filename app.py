@@ -8,9 +8,13 @@ def get_last_receipt_date(inventory_df, receipts_df):
         inventory_qty = inventory_df[inventory_df['Item number'] == part]['Physical inventory'].values[0]
         part_receipts = receipts_df[receipts_df['ItemId'] == part].sort_values(by='DateFinancial', ascending=False)
         
+        if part_receipts.empty:
+            results.append({'Part Number': part, 'Inventory Quantity': inventory_qty, 
+                            'Last Receipt Date': 'No receipts found'})
+            continue
+        
         remaining_qty = inventory_qty
         last_receipt_date = None
-        incomplete_record = False
         for idx, row in part_receipts.iterrows():
             if remaining_qty > row['Qty']:
                 remaining_qty -= row['Qty']
